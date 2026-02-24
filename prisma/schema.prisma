@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id      String  @id @default(cuid())
+  name_zh String  @unique
+  name_en String  @unique
+  slug    String  @unique
+  icon    String?
+  tools   Tool[]
+}
+
+model Tool {
+  id            String   @id @default(cuid())
+  logo          String?
+  url           String   @unique
+  screenshotUrl String?
+  videoUrl      String?
+  rate          Float    @default(5.0)
+  region        String   @default("Global")
+  isHot         Boolean  @default(false)
+  status        String   @default("PUBLISHED") // PUBLISHED, PENDING, REJECTED
+  isDeleted     Boolean  @default(false)
+  icp           String?
+  contact       String?
+  title_zh      String
+  summary_zh    String?
+  content_zh    String?
+  title_en      String
+  summary_en    String?
+  content_en    String?
+  categoryId    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  category      Category @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+}
+
+model CrawlerLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  status    String
+  message   String?
+}
+
+model Admin {
+  id           String @id @default(cuid())
+  username     String @unique
+  passwordHash String
+}
