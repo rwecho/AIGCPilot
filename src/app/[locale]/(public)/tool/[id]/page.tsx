@@ -1,70 +1,81 @@
-import { prisma } from "@/lib/prisma"
-import { notFound } from "next/navigation"
-import ReactMarkdown from "react-markdown"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ExternalLink, Calendar, Tag, Star, MapPin } from "lucide-react"
-import { Metadata } from "next"
-import { ProgressiveImage } from "@/components/ui/progressive-image"
-import { AIQuickActions } from "@/components/layout/AIQuickActions"
+import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  ExternalLink,
+  Calendar,
+  Tag,
+  Star,
+  MapPin,
+  Clapperboard,
+} from "lucide-react";
+import { Metadata } from "next";
+import { ProgressiveImage } from "@/components/ui/progressive-image";
+import { AIQuickActions } from "@/components/layout/AIQuickActions";
 
 interface PageProps {
-  params: Promise<{ locale: string, id: string }>
+  params: Promise<{ locale: string; id: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id, locale } = await params
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { id, locale } = await params;
   const tool = await prisma.tool.findUnique({
     where: { id },
-    include: { category: true }
-  })
+    include: { category: true },
+  });
 
-  if (!tool) return { title: "Tool Not Found" }
+  if (!tool) return { title: "Tool Not Found" };
 
-  const title = locale === 'en' ? tool.title_en : tool.title_zh
-  const summary = locale === 'en' ? tool.summary_en : tool.summary_zh
-  const categoryName = locale === 'en' ? tool.category.name_en : tool.category.name_zh
+  const title = locale === "en" ? tool.title_en : tool.title_zh;
+  const summary = locale === "en" ? tool.summary_en : tool.summary_zh;
+  const categoryName =
+    locale === "en" ? tool.category.name_en : tool.category.name_zh;
 
   return {
     title: `${title} - AIGCPilot`,
     description: summary || `${title} detailed guide.`,
     keywords: `${title}, ${categoryName}, AI Tools, AIGC`,
-  }
+  };
 }
 
 export default async function ToolDetailPage({ params }: PageProps) {
-  const { id, locale } = await params
+  const { id, locale } = await params;
   const tool = await prisma.tool.findUnique({
     where: { id },
-    include: { category: true }
-  })
+    include: { category: true },
+  });
 
-  if (!tool) notFound()
+  if (!tool) notFound();
 
-  const title = locale === 'en' ? tool.title_en : tool.title_zh
-  const summary = locale === 'en' ? tool.summary_en : tool.summary_zh
-  const content = locale === 'en' ? tool.content_en : tool.content_zh
-  const categoryName = locale === 'en' ? tool.category.name_en : tool.category.name_zh
+  const title = locale === "en" ? tool.title_en : tool.title_zh;
+  const summary = locale === "en" ? tool.summary_en : tool.summary_zh;
+  const content = locale === "en" ? tool.content_en : tool.content_zh;
+  const categoryName =
+    locale === "en" ? tool.category.name_en : tool.category.name_zh;
 
   // 构建 JSON-LD 结构化数据
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": title,
-    "description": summary,
-    "applicationCategory": categoryName,
-    "operatingSystem": "Web",
-    "url": tool.url,
-    "aggregateRating": {
+    name: title,
+    description: summary,
+    applicationCategory: categoryName,
+    operatingSystem: "Web",
+    url: tool.url,
+    aggregateRating: {
       "@type": "AggregateRating",
-      "ratingValue": tool.rate,
-      "ratingCount": "100"
+      ratingValue: tool.rate,
+      ratingCount: "100",
     },
-    "author": {
+    author: {
       "@type": "Organization",
-      "name": "AIGCPilot"
-    }
-  }
+      name: "AIGCPilot",
+    },
+  };
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4 space-y-8 animate-in fade-in duration-500">
@@ -74,10 +85,15 @@ export default async function ToolDetailPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Tool Info Header */}
-      <div className="flex items-start gap-6">
+      <div className="flex items-start gap-6 rounded-3xl border bg-linear-to-br from-card to-muted/20 p-6 md:p-8 shadow-sm">
         {tool.logo ? (
           <div className="relative h-20 w-20 shrink-0 rounded-2xl border bg-white p-2 shadow-sm overflow-hidden">
-            <ProgressiveImage src={tool.logo} alt="logo" fill className="object-contain" />
+            <ProgressiveImage
+              src={tool.logo}
+              alt="logo"
+              fill
+              className="object-contain"
+            />
           </div>
         ) : (
           <div className="h-20 w-20 rounded-2xl border bg-muted flex items-center justify-center text-muted-foreground text-xs">
@@ -106,7 +122,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
         </div>
         <Button size="lg" className="hidden md:flex gap-2" asChild>
           <a href={tool.url} target="_blank" rel="noopener noreferrer">
-            {locale === 'zh' ? '立即访问' : 'Visit Now'}
+            {locale === "zh" ? "立即访问" : "Visit Now"}
             <ExternalLink className="h-4 w-4" />
           </a>
         </Button>
@@ -119,16 +135,41 @@ export default async function ToolDetailPage({ params }: PageProps) {
       {/* AI 引导问答卡片 */}
       <AIQuickActions toolName={title} locale={locale} />
 
+      {/* Demo Video */}
+      {tool.videoUrl && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground/90">
+            <Clapperboard className="h-4 w-4 text-primary" />
+            {locale === "zh" ? "产品演示视频" : "Product Demo Video"}
+          </div>
+          <div className="relative aspect-video rounded-3xl overflow-hidden border shadow-2xl bg-black">
+            <video
+              src={tool.videoUrl}
+              poster={tool.screenshotUrl || undefined}
+              controls
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </section>
+      )}
+
       {/* Screenshot */}
       {tool.screenshotUrl && (
-        <div className="relative aspect-video rounded-3xl overflow-hidden border shadow-2xl bg-muted">
-          <ProgressiveImage 
-            src={tool.screenshotUrl} 
-            alt={`${title} screenshot`}
-            fill
-            className="object-cover"
-          />
-        </div>
+        <section className="space-y-3">
+          <div className="text-sm font-semibold text-foreground/90">
+            {locale === "zh" ? "界面预览" : "Interface Preview"}
+          </div>
+          <div className="relative aspect-video rounded-3xl overflow-hidden border shadow-2xl bg-muted">
+            <ProgressiveImage
+              src={tool.screenshotUrl}
+              alt={`${title} screenshot`}
+              fill
+              className="object-cover"
+            />
+          </div>
+        </section>
       )}
 
       {/* Content */}
@@ -138,7 +179,7 @@ export default async function ToolDetailPage({ params }: PageProps) {
             <ReactMarkdown>{content}</ReactMarkdown>
           ) : (
             <div className="text-muted-foreground italic py-10 text-center">
-              {locale === 'zh' ? '正在撰写中...' : 'Drafting...'}
+              {locale === "zh" ? "正在撰写中..." : "Drafting..."}
             </div>
           )}
         </article>
@@ -147,11 +188,11 @@ export default async function ToolDetailPage({ params }: PageProps) {
       <div className="flex md:hidden justify-center pb-10">
         <Button size="lg" className="w-full gap-2" asChild>
           <a href={tool.url} target="_blank" rel="noopener noreferrer">
-            {locale === 'zh' ? '访问官方网站' : 'Visit Website'}
+            {locale === "zh" ? "访问官方网站" : "Visit Website"}
             <ExternalLink className="h-4 w-4" />
           </a>
         </Button>
       </div>
     </div>
-  )
+  );
 }

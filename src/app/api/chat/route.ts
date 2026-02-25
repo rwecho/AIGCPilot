@@ -2,9 +2,9 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { convertToModelMessages, streamText } from "ai";
 
 // 创建 DeepSeek 兼容实例
-const deepseek = createOpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
-  baseURL: "https://api.deepseek.com", // DeepSeek 标准 API 地址
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL,
 });
 
 export async function POST(req: Request) {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = streamText({
-      model: deepseek.chat("deepseek-chat"),
+      model: openai.chat("deepseek-chat"),
       messages: await convertToModelMessages(messages),
     });
 

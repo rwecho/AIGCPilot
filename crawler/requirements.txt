@@ -2,3 +2,6 @@ playwright
 requests
 beautifulsoup4
 apscheduler
+boto3
+dotenv
+openai
