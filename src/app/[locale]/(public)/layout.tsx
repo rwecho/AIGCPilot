@@ -3,6 +3,7 @@ import Copilot from "@/components/layout/Copilot";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { AppSidebarProvider } from "@/components/layout/AppSidebarProvider";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { getCachedCategories } from "@/lib/categories";
 
 export default async function PublicLayout({
   children,
@@ -12,12 +13,13 @@ export default async function PublicLayout({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const categories = await getCachedCategories();
 
   return (
     <AppSidebarProvider>
       <div className="flex h-screen w-full bg-background overflow-hidden">
         {/* Left Sidebar */}
-        <AppSidebar />
+        <AppSidebar initialCategories={categories} />
 
         {/* Main Content */}
         <main className="flex-1 flex flex-col relative overflow-hidden">
