@@ -3,6 +3,7 @@ import { Sidebar } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { RevalidateButton } from "@/components/layout/RevalidateButton";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
@@ -26,6 +27,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </nav>
         </div>
         <div className="flex items-center gap-4">
+          <RevalidateButton />
           <Button variant="outline" size="sm" asChild>
             <Link href="/">返回首页</Link>
           </Button>
@@ -36,9 +38,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* Admin Content */}
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto">{children}</main>
       <Toaster position="top-right" />
     </div>
   );

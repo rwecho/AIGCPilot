@@ -2,7 +2,6 @@
 
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -24,14 +23,14 @@ import { ProgressiveImage } from "@/components/ui/progressive-image";
 
 interface Tool {
   id: string;
-  logo?: string;
+  logo?: string | null;
   title_zh: string;
   title_en: string;
-  summary_zh?: string;
-  summary_en?: string;
+  summary_zh?: string | null;
+  summary_en?: string | null;
   url: string;
-  screenshotUrl?: string;
-  videoUrl?: string;
+  screenshotUrl?: string | null;
+  videoUrl?: string | null;
   rate: number;
   region: string;
   isHot: boolean;
