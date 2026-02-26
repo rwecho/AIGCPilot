@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
   revalidatePath(`/zh/category/${category.slug}`);
   revalidatePath(`/en/category/${category.slug}`);
   revalidatePath("/sitemap.xml");
-  revalidateTag("categories");
+  revalidateTag("categories", "max");
 
   return NextResponse.json(tool);
 }

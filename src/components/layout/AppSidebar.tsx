@@ -67,7 +67,7 @@ interface AppSidebarProps {
     name_zh: string;
     name_en: string;
     slug: string;
-    icon?: string;
+    icon?: string | null;
   }>;
 }
 
