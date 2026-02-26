@@ -38,8 +38,33 @@ model Tool {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   category      Category @relation(fields: [categoryId], references: [id])
+  
+  // 深层次 AI 测评和动态数据属性
+  coreValue     String?
+  useCases      String?
+  prosCons      String?
+  promptExamples String?
+  openSourceAlternativeId String?
+  openSourceAlternative     Tool?    @relation("ToolAlternatives", fields: [openSourceAlternativeId], references: [id], onDelete: SetNull)
+  alternativesFor           Tool[]   @relation("ToolAlternatives")
+  likesCount    Int      @default(0)
+
+  // 关联的行业新闻/快讯
+  news          News[]   @relation("ToolNews")
 
   @@index([categoryId])
+}
+
+model News {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?  @db.Text
+  sourceUrl String?
+  status    String   @default("PUBLISHED") // PUBLISHED, PENDING, REJECTED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  relatedTools Tool[] @relation("ToolNews")
 }
 
 model CrawlerLog {

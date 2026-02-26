@@ -17,9 +17,10 @@ import {
   Plus,
   User,
   LogOut,
+  Newspaper,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import Link from "next/link";
 
 import {
@@ -74,6 +75,7 @@ interface AppSidebarProps {
 export function AppSidebar({ initialCategories = [] }: AppSidebarProps) {
   const { categories, setCategories, user, setUser } = useAppStore();
   const params = useParams();
+  const pathname = usePathname();
   const locale = (params?.locale as string) || "zh";
   const currentSlug = params?.slug as string | undefined;
   const { state } = useSidebar();
@@ -140,15 +142,28 @@ export function AppSidebar({ initialCategories = [] }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={!currentSlug}
-              tooltip={locale === "zh" ? "热门与资讯" : "Hot & News"}
-              className={cn(
-                !currentSlug && "bg-primary/10 text-primary font-bold",
-              )}
+              isActive={pathname === `/${locale}` || pathname === `/${locale}/`}
+              tooltip={locale === "zh" ? "发现热门" : "Hot Tools"}
             >
               <Link href={`/${locale}`}>
                 <Rocket />
-                <span>{locale === "zh" ? "热门与资讯" : "Hot & News"}</span>
+                <span>{locale === "zh" ? "发现热门" : "Hot Tools"}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === `/${locale}/news`}
+              tooltip={locale === "zh" ? "行业快讯" : "AI News"}
+              className={cn(
+                pathname === `/${locale}/news` && "bg-primary/10 text-primary font-bold",
+              )}
+            >
+              <Link href={`/${locale}/news`}>
+                <Newspaper />
+                <span>{locale === "zh" ? "行业快讯" : "AI News"}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

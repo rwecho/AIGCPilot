@@ -188,7 +188,7 @@ def process_one_item(name, url, desc, logo=None, video=None, raw_cat=""):
     shot = capture(url, name)
     logo_url = _download_and_upload_media(logo, "logos", ".png")
     video_url = _download_and_upload_media(video, "videos", ".mp4")
-    zh_cat, _ = get_standard_cat(raw_cat + name + desc)
+    zh_cat, slug = get_standard_cat(raw_cat + name + desc)
 
     payload = {
         **ai_info,
@@ -196,11 +196,8 @@ def process_one_item(name, url, desc, logo=None, video=None, raw_cat=""):
         "logo": logo_url,
         "screenshotUrl": shot,
         "videoUrl": video_url,
-        "rate": 4.9,
         "region": "Global",
-        "isHot": True,
-        "categoryName_zh": zh_cat,
-        "categoryName_en": zh_cat,
+        "categorySlug": slug,
     }
 
     headers = {"Authorization": f"Bearer {API_KEY}", "Content-Type": "application/json"}

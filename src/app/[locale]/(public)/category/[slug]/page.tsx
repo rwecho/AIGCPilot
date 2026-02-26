@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { ToolCard } from "@/components/layout/ToolCard";
 import { Metadata } from "next";
 
-export const revalidate = 300;
+export const revalidate = 3600;
+export const preferredRegion = 'sin1';
 
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;

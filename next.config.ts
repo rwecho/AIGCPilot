@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 国内 CDN 加速配置
+  assetPrefix: process.env.NEXT_PUBLIC_CDN_URL || undefined,
   images: {
     remotePatterns: [
       {
