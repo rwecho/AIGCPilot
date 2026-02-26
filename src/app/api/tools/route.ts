@@ -1,15 +1,16 @@
-import { prisma } from "@/lib/prisma"
-import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const categoryId = searchParams.get('categoryId')
-  const hot = searchParams.get('hot') === 'true'
-  const urlsOnly = searchParams.get('urlsOnly') === 'true'
+  const { searchParams } = new URL(request.url);
+  const categoryId = searchParams.get("categoryId");
+  const hot = searchParams.get("hot") === "true";
+  const urlsOnly = searchParams.get("urlsOnly") === "true";
 
   if (urlsOnly) {
-    const tools = await prisma.tool.findMany({ select: { url: true } })
-    return NextResponse.json(tools.map(t => t.url))
+    const tools = await prisma.tool.findMany({ select: { url: true } });
+    return NextResponse.json(tools.map((t) => t.url));
   }
 
   const tools = await prisma.tool.findMany({
@@ -19,26 +20,26 @@ export async function GET(request: NextRequest) {
       ...(hot ? { isHot: true } : {}),
     },
     include: {
-      category: { select: { name_zh: true, name_en: true } }
+      category: { select: { name_zh: true, name_en: true } },
     },
-    orderBy: { createdAt: 'desc' }
-  })
-  return NextResponse.json(tools)
+    orderBy: { createdAt: "desc" },
+  });
+  return NextResponse.json(tools);
 }
 
 export async function POST(request: NextRequest) {
   // Simple auth for crawler
-  const authHeader = request.headers.get('authorization')
+  const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.API_SECRET_KEY}`) {
-    return new NextResponse('Unauthorized', { status: 401 })
+    return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const data = await request.json()
-  const { 
-    url, 
+  const data = await request.json();
+  const {
+    url,
     logo,
-    screenshotUrl, 
-    videoUrl, 
+    screenshotUrl,
+    videoUrl,
     rate = 5.0,
     region = "Global",
     isHot = false,
@@ -49,19 +50,21 @@ export async function POST(request: NextRequest) {
     content_zh,
     content_en,
     categoryName_zh,
-    categoryName_en
-  } = data
+    categoryName_en,
+  } = data;
 
   // Find or create category
   const category = await prisma.category.upsert({
     where: { name_zh: categoryName_zh },
     update: {},
-    create: { 
+    create: {
       name_zh: categoryName_zh,
       name_en: categoryName_en || categoryName_zh,
-      slug: (categoryName_en || categoryName_zh).toLowerCase().replace(/\s+/g, '-')
-    }
-  })
+      slug: (categoryName_en || categoryName_zh)
+        .toLowerCase()
+        .replace(/\s+/g, "-"),
+    },
+  });
 
   const tool = await prisma.tool.upsert({
     where: { url },
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
       summary_en,
       content_zh,
       content_en,
-      categoryId: category.id
+      categoryId: category.id,
     },
     create: {
       url,
@@ -94,9 +97,17 @@ export async function POST(request: NextRequest) {
       summary_en,
       content_zh,
       content_en,
-      categoryId: category.id
-    }
-  })
+      categoryId: category.id,
+    },
+  });
 
-  return NextResponse.json(tool)
+  // On-demand cache refresh for ISR pages
+  revalidatePath("/zh");
+  revalidatePath("/en");
+  revalidatePath(`/zh/category/${category.slug}`);
+  revalidatePath(`/en/category/${category.slug}`);
+  revalidatePath("/sitemap.xml");
+  revalidateTag("categories");
+
+  return NextResponse.json(tool);
 }

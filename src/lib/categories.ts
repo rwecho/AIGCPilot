@@ -8,5 +8,5 @@ export const getCachedCategories = unstable_cache(
     });
   },
   ["categories:list"],
-  { revalidate: 300 },
+  { revalidate: 300, tags: ["categories"] },
 );

@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { ToolCard } from "@/components/layout/ToolCard";
 import { Metadata } from "next";
 
+export const revalidate = 300;
+
 interface PageProps {
   params: Promise<{ locale: string; slug: string }>;
 }
@@ -70,9 +72,7 @@ export default async function CategoryPage({ params }: PageProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {category.tools.length > 0 ? (
-          category.tools.map((tool: any) => (
-            <ToolCard key={tool.id} tool={tool} />
-          ))
+          category.tools.map((tool) => <ToolCard key={tool.id} tool={tool} />)
         ) : (
           <div className="col-span-full py-20 text-center text-muted-foreground border-2 border-dashed rounded-xl">
             {locale === "zh"
