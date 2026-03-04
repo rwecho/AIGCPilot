@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { fakerZH_CN as faker } from '@faker-js/faker';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -14,6 +15,16 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  // Clear fake data to make seed idempotent
+  console.log("Cleaning up old mock data...");
+  await prisma.article.deleteMany();
+  await prisma.news.deleteMany();
+  await prisma.tool.deleteMany({
+    where: {
+      url: { contains: "fake-url.com" }
+    }
+  });
+
   const categories = [
     { name_zh: "基座大模型", name_en: "Foundation Models", slug: "models", icon: "Rocket" },
     { name_zh: "AI 搜索", name_en: "AI Search", slug: "search", icon: "Search" },
@@ -425,7 +436,63 @@ async function main() {
     }
   }
 
-  console.log("Seed completed with optimized categories and 30 top-tier top-quality tools.");
+  console.log("Seed completed with hand-curated tools.");
+
+  // --- Faker Data Seeding ---
+  console.log("Seeding fake news...");
+  const fakeNews = [];
+  for (let i = 0; i < 20; i++) {
+    fakeNews.push({
+      title: faker.lorem.sentence({ min: 5, max: 15 }),
+      content: faker.lorem.paragraphs({ min: 1, max: 3 }),
+      sourceUrl: faker.internet.url(),
+      status: "PUBLISHED",
+    });
+  }
+  await prisma.news.createMany({ data: fakeNews });
+
+  console.log("Seeding fake articles...");
+  const fakeArticles = [];
+  for (let i = 0; i < 15; i++) {
+    const title = faker.lorem.sentence({ min: 4, max: 10 });
+    fakeArticles.push({
+      title: title,
+      slug: faker.helpers.slugify(title).toLowerCase() + "-" + faker.string.uuid().substring(0, 6),
+      content: `# ${title}\n\n${faker.lorem.paragraphs({ min: 3, max: 6 })}\n\n## ${faker.lorem.sentence()}\n\n${faker.lorem.paragraphs({ min: 2, max: 4 })}\n\n![Mock Image](${faker.image.urlLoremFlickr({ category: 'technology' })})`,
+      coverImage: faker.image.urlLoremFlickr({ category: 'abstract', width: 800, height: 400 }),
+      author: faker.person.fullName(),
+      status: "PUBLISHED",
+      viewCount: faker.number.int({ min: 10, max: 50000 }),
+    });
+  }
+  await prisma.article.createMany({ data: fakeArticles });
+
+  console.log("Seeding additional fake tools...");
+  const dbCategories = await prisma.category.findMany();
+  if (dbCategories.length > 0) {
+    const fakeTools = [];
+    for (let i = 0; i < 100; i++) {
+      const category = faker.helpers.arrayElement(dbCategories);
+      const title = faker.company.name() + " AI";
+      const summary = faker.company.catchPhrase();
+      fakeTools.push({
+        title_zh: title,
+        title_en: title,
+        summary_zh: summary,
+        summary_en: summary,
+        logo: faker.image.urlLoremFlickr({ category: 'logo,tech,app', width: 128, height: 128 }),
+        url: `https://fake-url.com/${faker.string.uuid()}`,
+        rate: faker.number.float({ min: 4.0, max: 5.0, fractionDigits: 1 }),
+        region: faker.helpers.arrayElement(["CN", "Global", "US", "EU"]),
+        isHot: faker.datatype.boolean({ probability: 0.15 }),
+        status: "PUBLISHED",
+        categoryId: category.id,
+      });
+    }
+    await prisma.tool.createMany({ data: fakeTools });
+  }
+
+  console.log("Faker data seeding complete!");
 }
 
 main()

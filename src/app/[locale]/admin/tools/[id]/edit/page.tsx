@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   ChevronLeft, Save, Globe, Eye, 
   Type, AlignLeft, Layout, 
-  Loader2, CheckCircle2
+  Loader2, CheckCircle2, Upload
 } from "lucide-react"
 import { toast } from "sonner"
 import ReactMarkdown from "react-markdown"
@@ -47,6 +47,30 @@ export default function ToolEditPage({ params: paramsPromise }: { params: Promis
       toast.error("保存失败")
     }
     setSaving(false)
+  }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'screenshotUrl' | 'videoUrl') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    toast.loading("上传中...", { id: `upload-${field}` })
+    try {
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        body: formData
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setTool({ ...tool, [field]: data.url })
+        toast.success("上传成功！", { id: `upload-${field}` })
+      } else {
+        toast.error(`上传失败: ${data.error}`, { id: `upload-${field}` })
+      }
+    } catch (err: any) {
+      toast.error(`上传出错: ${err.message}`, { id: `upload-${field}` })
+    }
   }
 
   if (loading) return (
@@ -163,15 +187,50 @@ export default function ToolEditPage({ params: paramsPromise }: { params: Promis
                 </div>
                 <div className="space-y-2">
                   <Label>Logo 地址</Label>
-                  <Input value={tool.logo || ""} onChange={e => setTool({...tool, logo: e.target.value})} />
+                  <div className="flex gap-2">
+                    <Input value={tool.logo || ""} onChange={e => setTool({...tool, logo: e.target.value})} />
+                    <Label htmlFor="logo-upload" className="cursor-pointer shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm">
+                       <Upload className="h-4 w-4" />
+                    </Label>
+                    <input type="file" id="logo-upload" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'logo')} />
+                  </div>
+                  {tool.logo && (
+                    <div className="mt-2 border rounded-md overflow-hidden bg-muted flex items-center justify-center p-2 w-24 h-24">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={tool.logo} alt="Logo Preview" className="max-w-full max-h-full object-contain" />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>截图预览</Label>
-                  <Input value={tool.screenshotUrl || ""} onChange={e => setTool({...tool, screenshotUrl: e.target.value})} />
+                  <div className="flex gap-2">
+                    <Input value={tool.screenshotUrl || ""} onChange={e => setTool({...tool, screenshotUrl: e.target.value})} />
+                    <Label htmlFor="screenshot-upload" className="cursor-pointer shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm">
+                       <Upload className="h-4 w-4" />
+                    </Label>
+                    <input type="file" id="screenshot-upload" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'screenshotUrl')} />
+                  </div>
+                  {tool.screenshotUrl && (
+                    <div className="mt-2 text-sm text-muted-foreground border rounded-md overflow-hidden bg-black/5 aspect-video w-full max-w-sm">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={tool.screenshotUrl} alt="Screenshot Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>视频演示</Label>
-                  <Input value={tool.videoUrl || ""} onChange={e => setTool({...tool, videoUrl: e.target.value})} />
+                  <div className="flex gap-2">
+                    <Input value={tool.videoUrl || ""} onChange={e => setTool({...tool, videoUrl: e.target.value})} />
+                    <Label htmlFor="video-upload" className="cursor-pointer shrink-0 inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm">
+                       <Upload className="h-4 w-4" />
+                    </Label>
+                    <input type="file" id="video-upload" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'videoUrl')} />
+                  </div>
+                  {tool.videoUrl && (
+                    <div className="mt-2 border rounded-md overflow-hidden bg-black aspect-video w-full max-w-sm">
+                      <video src={tool.videoUrl} controls preload="metadata" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label>权重评分 (0-5.0)</Label>

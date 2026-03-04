@@ -24,6 +24,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <Button variant="ghost" asChild size="sm">
               <Link href="/admin/categories">分类维护</Link>
             </Button>
+            <Button variant="ghost" asChild size="sm">
+              <Link href="/admin/articles">文章管理</Link>
+            </Button>
           </nav>
         </div>
         <div className="flex items-center gap-4">

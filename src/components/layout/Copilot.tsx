@@ -213,6 +213,13 @@ export default function Copilot() {
   const typedMessages = useMemo(() => messages as CopilotMessage[], [messages]);
 
   useEffect(() => {
+    const saved = localStorage.getItem("copilot-collapsed");
+    if (saved) {
+      setIsCollapsed(saved === "true");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!externalInput) return;
 
     sendMessage({ text: externalInput });

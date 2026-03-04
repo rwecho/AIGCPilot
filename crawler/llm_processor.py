@@ -127,3 +127,54 @@ def process_news_content(title_en, link, description_en="", external_context="")
             "title_zh": f"[自动翻译失败] {title_en}",
             "content_zh": f"AI 新闻解析失败。原始链接: {link}\n摘要: {description_en}"
         }
+
+
+def process_youtube_transcript(title_en, channel_name, video_url, transcript_text):
+    """
+    处理 YouTube 视频的原始字幕，提取核心信息并转化为深度科技新闻/总结文章。
+    """
+    print(f"DeepSeek is deeply analyzing YouTube Transcript: {title_en} from {channel_name}...")
+
+    # Substring transcript to avoid context window explosion (e.g. max 15000 chars)
+    transcript_text = transcript_text[:15000]
+
+    prompt = f"""
+    你是一个风格幽默、见解犀利的硅谷资深科技博主（类似 The Verge 或 Marques Brownlee 的文字风格）。请阅读以下 YouTube AI 视频的【原始机器字幕】，从中提取最硬核的技术细节、情报或教程步骤，写一篇引人入胜的【中文科技深度长文】（约 600-800 字）。
+    
+    视频标题: {title_en}
+    频道: {channel_name}
+    视频链接: {video_url}
+    
+    原始字幕:
+    {transcript_text}
+    
+    输出要求 (严格遵循 JSON 格式):
+    {{
+      "title_zh": "一个极具网感、吸引眼球的中文标题（如：Andrej Karpathy 亲自下场教你写代码！万字硬核笔记）",
+      "content_zh": "这里输出一篇 600-800 字的详细文章。必须使用【纯 Markdown】格式，绝对禁止使用任何 HTML 标签（如 <ul>, <li>, <strong> 等）。\n\n必须包含以下要素，并且每个标题前后必须有空行：\n\n## 导语与核心看点\n（用极其口语化、接地气的方式介绍这个视频为什么值得看，不要用“本视频探讨了”这种机器味十足的废话。直接给读者放猛料，介绍最牛逼的点。）\n\n## 硬核细节提炼\n（深入字幕提取具体的数据、算法名词、工具名称或者教程的详细步骤。使用标准的 Markdown 无序列表 `- `。要多写细节，不要泛泛而谈。保留原汁原味的技术深度。）\n\n## 个人神评与行业启发\n（以主观的博主视角，锐评一下这个技术/教程的优缺点，或者是对普通人和开发者的实际建议。语言要犀利、有态度。）\n\n注意：请确保使用 `\\n\\n` 来换行，保证排版在前端可以正确渲染。加粗请使用 `**文本**`，禁止使用 HTML 标签！"
+    }}
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="deepseek-chat",
+            messages=[
+                {"role": "system", "content": "You are a professional AI tech journalist."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"},
+        )
+        content = response.choices[0].message.content
+
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+
+        return json.loads(content, strict=False)
+    except Exception as e:
+        print(f"DeepSeek YouTube Transcript Error: {e}")
+        return {
+            "title_zh": f"[视频解析] {title_en}",
+            "content_zh": f"This is an automated extraction from YouTube channel {channel_name}.\n\nSource: {video_url}\n\n*Transcript was successfully pulled but the AI abstraction agent timed out or failed.*"
+        }

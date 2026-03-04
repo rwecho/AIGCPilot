@@ -5,3 +5,4 @@ apscheduler
 boto3
 dotenv
 openai
+youtube-transcript-api

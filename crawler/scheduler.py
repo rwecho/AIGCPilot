@@ -6,6 +6,7 @@ from github_crawler import crawl_github_trending
 from news_crawler import crawl_news
 from ph_crawler import crawl_producthunt_ai
 from enrichment_crawler import run_enrichment_cycle
+from youtube_crawler import crawl_youtube
 
 def job_main_tools_crawler():
     print(f"\n--- [{datetime.datetime.now()}] Running Main Tools Crawler ---")
@@ -23,6 +24,11 @@ def job_news_crawler():
     print(f"\n--- [{datetime.datetime.now()}] Running AI News Crawler ---")
     crawl_news()
     print(f"--- Finished AI News Crawler ---")
+
+def job_youtube_crawler():
+    print(f"\n--- [{datetime.datetime.now()}] Running YouTube Video News Crawler ---")
+    crawl_youtube()
+    print(f"--- Finished YouTube Video News Crawler ---")
 
 def job_ph_crawler():
     print(f"\n--- [{datetime.datetime.now()}] Running ProductHunt Crawler ---")
@@ -47,15 +53,18 @@ if __name__ == "__main__":
     print("3. GitHub trending crawler runs every 12 hours.")
     print("4. Enrichment/Healer crawler runs every 6 hours.")
     print("5. News crawler runs every 4 hours.")
+    print("6. YouTube Video News crawler runs every 12 hours.")
     
     # Setup intervals
     schedule.every(24).hours.do(job_main_tools_crawler)
     schedule.every(24).hours.do(job_ph_crawler)
     schedule.every(12).hours.do(job_github_crawler)
+    schedule.every(12).hours.do(job_youtube_crawler)
     schedule.every(6).hours.do(job_enrich_crawler)
     schedule.every(4).hours.do(job_news_crawler)
 
     # Immediately run news and premium on startup (optional but helpful for testing)
+    job_youtube_crawler()
     job_news_crawler()
     job_ph_crawler()
     job_enrich_crawler()

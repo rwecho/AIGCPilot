@@ -79,3 +79,18 @@ model Admin {
   username     String @unique
   passwordHash String
 }
+
+model Article {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  coverImage  String?
+  author      String?  
+  status      String   @default("DRAFT") // PUBLISHED, DRAFT
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([status, createdAt])
+}
